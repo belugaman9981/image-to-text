@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Image to Text</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+
+  <!-- ── HOME SCREEN ── -->
+  <div id="home-screen" class="screen active">
+    <div class="header">
+      <div class="app-icon">
+        <!-- document with text lines -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="30" height="30">
+          <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M16,11H8V13H16V11M16,15H8V17H16V15Z"/>
+        </svg>
+      </div>
+      <h1>Extract Text from Images</h1>
+      <p class="subtitle">Upload images or screenshots and convert them to editable text in seconds.</p>
+    </div>
+
+    <div class="options-grid">
+
+      <!-- Upload Image -->
+      <button class="option-card" id="upload-btn">
+        <div class="icon-circle blue">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="22" height="22">
+            <path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z"/>
+          </svg>
+        </div>
+        <span class="card-title">Upload Image</span>
+        <span class="card-desc">Select from your device</span>
+      </button>
+
+      <!-- Take Screenshot -->
+      <button class="option-card" id="screenshot-btn">
+        <div class="icon-circle green">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="22" height="22">
+            <path d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z"/>
+          </svg>
+        </div>
+        <span class="card-title">Take Screenshot</span>
+        <span class="card-desc">Capture current tab</span>
+      </button>
+
+      <!-- Paste from Clipboard -->
+      <button class="option-card" id="clipboard-btn">
+        <div class="icon-circle purple">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="22" height="22">
+            <path d="M19,3H14.82C14.4,1.84 13.3,1 12,1C10.7,1 9.6,1.84 9.18,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M12,3A1,1 0 0,1 13,4A1,1 0 0,1 12,5A1,1 0 0,1 11,4A1,1 0 0,1 12,3M7,7H17V5H19V19H5V5H7V7Z"/>
+          </svg>
+        </div>
+        <span class="card-title">Paste from Clipboard</span>
+        <span class="card-desc">Press Ctrl+V or ⌘+V</span>
+      </button>
+
+      <!-- Drag & Drop -->
+      <button class="option-card" id="dragdrop-zone">
+        <div class="icon-circle yellow">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="22" height="22">
+            <path d="M14,13V17H10V13H7L12,8L17,13M19.35,10.03C18.67,6.59 15.64,4 12,4C9.11,4 6.6,5.64 5.35,8.03C2.34,8.36 0,10.9 0,14A6,6 0 0,0 6,20H19A5,5 0 0,0 24,15C24,12.36 21.95,10.22 19.35,10.03Z"/>
+          </svg>
+        </div>
+        <span class="card-title">Drag &amp; Drop</span>
+        <span class="card-desc">Drag files into this window</span>
+      </button>
+
+    </div>
+
+    <input type="file" id="file-input" accept="image/*" hidden />
+  </div>
+
+  <!-- ── PROCESSING SCREEN ── -->
+  <div id="processing-screen" class="screen">
+    <div class="center-panel">
+      <div class="spinner"></div>
+      <p class="processing-text">Extracting text…</p>
+    </div>
+  </div>
+
+  <!-- ── RESULT SCREEN ── -->
+  <div id="result-screen" class="screen">
+    <div class="result-header">
+      <button class="icon-btn" id="back-btn" title="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+          <path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
+        </svg>
+      </button>
+      <h2>Extracted Text</h2>
+      <div style="width:32px"></div><!-- spacer to center h2 -->
+    </div>
+
+    <div class="result-body">
+      <textarea id="result-text" spellcheck="false" placeholder="No text found in this image."></textarea>
+      <div class="result-actions">
+        <button class="btn-action btn-copy" id="copy-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+            <path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/>
+          </svg>
+          <span class="btn-label">Copy All</span>
+        </button>
+        <button class="btn-action btn-download" id="download-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+            <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z"/>
+          </svg>
+          <span class="btn-label">Download .txt</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ERROR SCREEN ── -->
+  <div id="error-screen" class="screen">
+    <div class="center-panel">
+      <div class="error-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ef4444" width="48" height="48">
+          <path d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"/>
+        </svg>
+      </div>
+      <p id="error-message" class="error-msg">An error occurred.</p>
+      <button class="btn-action btn-retry" id="retry-btn">Try Again</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

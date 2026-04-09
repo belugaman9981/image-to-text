@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Image to Text – Extract Text from Images",
+  "version": "1.0.0",
+  "description": "Upload images or screenshots and convert them to editable text in seconds.",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "clipboardRead",
+    "clipboardWrite"
+  ],
+  "host_permissions": [
+    "https://api.ocr.space/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Image to Text"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}
