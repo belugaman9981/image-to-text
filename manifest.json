@@ -1,17 +1,19 @@
 {
   "manifest_version": 3,
   "name": "Image to Text – Extract Text from Images",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Upload images or screenshots and convert them to editable text in seconds.",
   "permissions": [
     "activeTab",
     "tabs",
     "windows",
     "clipboardRead",
-    "clipboardWrite"
+    "clipboardWrite",
+    "storage"
   ],
   "host_permissions": [
-    "https://api.ocr.space/*"
+    "https://api.ocr.space/*",
+    "https://api.anthropic.com/*"
   ],
   "action": {
     "default_popup": "popup.html",
