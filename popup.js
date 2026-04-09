@@ -8,6 +8,22 @@ const processingScreen = $('processing-screen');
 const resultScreen     = $('result-screen');
 const errorScreen      = $('error-screen');
 
+const OCR_API_KEY = 'helloworld';
+
+function removeInlineAiError() {
+  const existing = $('ai-inline-error');
+  if (existing) existing.remove();
+}
+
+function showInlineAiError(message) {
+  removeInlineAiError();
+  const errP = document.createElement('p');
+  errP.id = 'ai-inline-error';
+  errP.style.cssText = 'font-size:11px;color:#c47a6a;margin-top:-4px;';
+  errP.textContent = message;
+  $('ai-btn').insertAdjacentElement('afterend', errP);
+}
+
 function showScreen(el) {
   [homeScreen, cropScreen, processingScreen, resultScreen, errorScreen]
     .forEach(s => s.classList.remove('active'));
@@ -32,33 +48,31 @@ function getSelectedLang() {
   return $('lang-select').value || 'eng';
 }
 
-// ── OCR via OCR.space ──────────────────────────────────────────────────────
-const OCR_API_KEY = 'helloworld';
-
 async function compressImage(dataUrl, maxKB = 900) {
   if (dataUrl.length * 0.75 / 1024 <= maxKB) return dataUrl;
   return new Promise(resolve => {
     const img = new Image();
     img.onload = () => {
-      const ratio  = Math.sqrt((maxKB * 1024) / (dataUrl.length * 0.75));
+      const ratio  = Math.max(0.2, Math.sqrt((maxKB * 1024) / (dataUrl.length * 0.75)));
       const canvas = document.createElement('canvas');
-      canvas.width  = Math.floor(img.naturalWidth  * ratio);
-      canvas.height = Math.floor(img.naturalHeight * ratio);
+      canvas.width  = Math.max(1, Math.floor(img.naturalWidth  * ratio));
+      canvas.height = Math.max(1, Math.floor(img.naturalHeight * ratio));
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
       resolve(canvas.toDataURL('image/jpeg', 0.88));
     };
+    img.onerror = () => resolve(dataUrl);
     img.src = dataUrl;
   });
 }
 
-async function performOCR(dataUrl) {
+async function requestOcr(dataUrl, engine) {
   const compressed = await compressImage(dataUrl);
   const body = new FormData();
   body.append('apikey',            OCR_API_KEY);
   body.append('base64image',       compressed);
   body.append('language',          getSelectedLang());
   body.append('isOverlayRequired', 'false');
-  body.append('OCREngine',         '2');
+  body.append('OCREngine',         String(engine));
 
   const res = await fetch('https://api.ocr.space/parse/image', {
     method: 'POST',
@@ -80,8 +94,20 @@ async function performOCR(dataUrl) {
   return data.ParsedResults.map(r => r.ParsedText).join('\n').trim();
 }
 
+async function performOCR(dataUrl) {
+  try {
+    return await requestOcr(dataUrl, 2);
+  } catch (err) {
+    const msg = String(err.message || '');
+    const shouldFallback = /engine|unable to recognize|file failed|processing failed|server error/i.test(msg);
+    if (!shouldFallback) throw err;
+    return requestOcr(dataUrl, 1);
+  }
+}
+
 async function processImage(dataUrl) {
   showScreen(processingScreen);
+  removeInlineAiError();
   try {
     const text = await performOCR(dataUrl);
     $('result-text').value = text;
@@ -105,6 +131,23 @@ let scaleFactorY      = 1;
 const cropCanvas  = $('crop-canvas');
 const cropCtx     = cropCanvas.getContext('2d');
 const placeholder = $('canvas-placeholder');
+
+function readBlobAsDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.onerror = () => reject(new Error('Failed to read the image file.'));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function openImageSource(fileOrBlob) {
+  if (!fileOrBlob || !fileOrBlob.type || !fileOrBlob.type.startsWith('image/')) {
+    throw new Error('Please use a valid image file (JPG, PNG, GIF, WEBP, etc.).');
+  }
+  const dataUrl = await readBlobAsDataUrl(fileOrBlob);
+  showCropScreen(dataUrl);
+}
 
 function showCropScreen(dataUrl) {
   cropDataUrl = dataUrl;
@@ -265,13 +308,7 @@ $('file-input').addEventListener('change', function () {
   const file = this.files[0];
   this.value = '';
   if (!file) return;
-  if (!file.type.startsWith('image/')) {
-    showError('Please select a valid image file (JPG, PNG, GIF, WEBP, etc.).');
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = e => showCropScreen(e.target.result);
-  reader.readAsDataURL(file);
+  openImageSource(file).catch(err => showError(err.message));
 });
 
 // ── Take Screenshot ────────────────────────────────────────────────────────
@@ -296,9 +333,7 @@ async function readClipboard() {
       const imgType = item.types.find(t => t.startsWith('image/'));
       if (imgType) {
         const blob   = await item.getType(imgType);
-        const reader = new FileReader();
-        reader.onload = e => showCropScreen(e.target.result);
-        reader.readAsDataURL(blob);
+        await openImageSource(blob);
         return;
       }
     }
@@ -313,10 +348,27 @@ async function readClipboard() {
 
 $('clipboard-btn').addEventListener('click', readClipboard);
 
+document.addEventListener('paste', async e => {
+  if (!homeScreen.classList.contains('active')) return;
+  const items = Array.from(e.clipboardData?.items || []);
+  const imageItem = items.find(item => item.type.startsWith('image/'));
+  if (!imageItem) return;
+
+  e.preventDefault();
+  try {
+    await openImageSource(imageItem.getAsFile());
+  } catch (err) {
+    showError(err.message);
+  }
+});
+
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'v' && homeScreen.classList.contains('active')) {
-    e.preventDefault();
-    readClipboard();
+    setTimeout(() => {
+      if (homeScreen.classList.contains('active')) {
+        readClipboard();
+      }
+    }, 0);
   }
 });
 
@@ -348,13 +400,7 @@ document.addEventListener('drop', e => {
 
   const file = e.dataTransfer.files[0];
   if (!file) return;
-  if (!file.type.startsWith('image/')) {
-    showError('Please drop an image file (JPG, PNG, GIF, WEBP, etc.).');
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = ev => showCropScreen(ev.target.result);
-  reader.readAsDataURL(file);
+  openImageSource(file).catch(err => showError(err.message));
 });
 
 // ── Copy All button ────────────────────────────────────────────────────────
@@ -407,6 +453,7 @@ $('retry-btn').addEventListener('click', () => {
 function hideApiKeyPanel() {
   $('api-key-panel').style.display = 'none';
   $('api-key-input').value = '';
+  removeInlineAiError();
 }
 
 function setAiLoading(loading) {
@@ -484,20 +531,26 @@ async function runAiCleanup(apiKey) {
       .join('');
 
     $('result-text').value = cleaned;
+    removeInlineAiError();
 
   } catch (err) {
-    // Show error inline rather than navigating away
-    const errP = document.createElement('p');
-    errP.style.cssText = 'font-size:11px;color:#c47a6a;margin-top:-4px;';
-    errP.textContent = err.message;
-    const aiBtn = $('ai-btn');
-    const existing = aiBtn.nextSibling;
-    if (existing && existing.tagName === 'P') existing.remove();
-    aiBtn.insertAdjacentElement('afterend', errP);
-    setTimeout(() => errP.remove(), 6000);
+    showInlineAiError(err.message);
+    setTimeout(removeInlineAiError, 6000);
   } finally {
     setAiLoading(false);
   }
+}
+
+async function saveApiKeyAndRun() {
+  const key = $('api-key-input').value.trim();
+  if (!key) {
+    showInlineAiError('Enter an Anthropic API key first.');
+    $('api-key-input').focus();
+    return;
+  }
+
+  await saveApiKey(key);
+  await runAiCleanup(key);
 }
 
 $('ai-btn').addEventListener('click', async () => {
@@ -515,6 +568,15 @@ $('ai-btn').addEventListener('click', async () => {
     panel.style.display = isVisible ? 'none' : 'flex';
     panel.style.flexDirection = 'column';
     if (!isVisible) $('api-key-input').focus();
+  }
+});
+
+$('save-key-btn').addEventListener('click', saveApiKeyAndRun);
+
+$('api-key-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    saveApiKeyAndRun();
   }
 });
 
