@@ -9,6 +9,10 @@ const resultScreen     = $('result-screen');
 const errorScreen      = $('error-screen');
 
 const OCR_API_KEY = 'helloworld';
+const OCR_PRIMARY_ENGINE = 1;
+const OCR_FALLBACK_ENGINE = 2;
+const OCR_MAX_EDGE = 1800;
+const AI_MODEL = 'claude-3-5-haiku-latest';
 
 function removeInlineAiError() {
   const existing = $('ai-inline-error');
@@ -53,12 +57,14 @@ async function compressImage(dataUrl, maxKB = 900) {
   return new Promise(resolve => {
     const img = new Image();
     img.onload = () => {
-      const ratio  = Math.max(0.2, Math.sqrt((maxKB * 1024) / (dataUrl.length * 0.75)));
+      const byteRatio = Math.max(0.2, Math.sqrt((maxKB * 1024) / (dataUrl.length * 0.75)));
+      const edgeRatio = Math.min(1, OCR_MAX_EDGE / Math.max(img.naturalWidth, img.naturalHeight));
+      const ratio = Math.min(byteRatio, edgeRatio);
       const canvas = document.createElement('canvas');
       canvas.width  = Math.max(1, Math.floor(img.naturalWidth  * ratio));
       canvas.height = Math.max(1, Math.floor(img.naturalHeight * ratio));
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL('image/jpeg', 0.88));
+      resolve(canvas.toDataURL('image/jpeg', 0.82));
     };
     img.onerror = () => resolve(dataUrl);
     img.src = dataUrl;
@@ -96,12 +102,14 @@ async function requestOcr(dataUrl, engine) {
 
 async function performOCR(dataUrl) {
   try {
-    return await requestOcr(dataUrl, 2);
+    const primaryResult = await requestOcr(dataUrl, OCR_PRIMARY_ENGINE);
+    if (primaryResult) return primaryResult;
+    return requestOcr(dataUrl, OCR_FALLBACK_ENGINE);
   } catch (err) {
     const msg = String(err.message || '');
     const shouldFallback = /engine|unable to recognize|file failed|processing failed|server error/i.test(msg);
     if (!shouldFallback) throw err;
-    return requestOcr(dataUrl, 1);
+    return requestOcr(dataUrl, OCR_FALLBACK_ENGINE);
   }
 }
 
@@ -484,6 +492,8 @@ async function runAiCleanup(apiKey) {
   const rawText = $('result-text').value.trim();
   if (!rawText) return;
 
+  const estimatedOutputTokens = Math.max(256, Math.min(900, Math.ceil(rawText.length / 3.5)));
+
   setAiLoading(true);
   hideApiKeyPanel();
 
@@ -497,8 +507,8 @@ async function runAiCleanup(apiKey) {
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1024,
+        model: AI_MODEL,
+        max_tokens: estimatedOutputTokens,
         messages: [{
           role: 'user',
           content:
