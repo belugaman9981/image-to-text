@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Crop Screenshot</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1715;
+      overflow: hidden;
+      cursor: crosshair;
+      user-select: none;
+      font-family: 'DM Sans', system-ui, sans-serif;
+    }
+
+    #canvas-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #bg-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      pointer-events: none;
+    }
+
+    #selection {
+      position: absolute;
+      border: 2px solid #fff;
+      background: transparent;
+      pointer-events: none;
+      display: none;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,.5);
+    }
+
+    .hint {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(44, 40, 37, .9);
+      color: #faf7f2;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 18px;
+      border-radius: 20px;
+      pointer-events: none;
+      backdrop-filter: blur(6px);
+      white-space: nowrap;
+    }
+
+    #toolbar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+      gap: 10px;
+      background: rgba(44, 40, 37, .95);
+      padding: 10px 16px;
+      border-radius: 14px;
+      backdrop-filter: blur(8px);
+      align-items: center;
+    }
+
+    #toolbar.visible { display: flex; }
+
+    .tb-btn {
+      padding: 7px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      transition: opacity .15s, transform .1s;
+    }
+
+    .tb-btn:hover { opacity: .85; transform: translateY(-1px); }
+
+    #btn-crop {
+      background: #d8d4cc;
+      color: #2c2825;
+    }
+
+    #btn-cancel {
+      background: transparent;
+      color: #a09a94;
+      border: 1px solid #4a4540;
+    }
+
+    .size-label {
+      color: #a09a94;
+      font-size: 11px;
+      min-width: 80px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container">
+    <canvas id="bg-canvas"></canvas>
+    <div id="selection"></div>
+  </div>
+
+  <div class="hint">Click and drag to select an area • Press Esc to cancel</div>
+
+  <div id="toolbar">
+    <span class="size-label" id="size-label">0 × 0</span>
+    <button class="tb-btn" id="btn-cancel">Cancel</button>
+    <button class="tb-btn" id="btn-crop">Crop & Extract</button>
+  </div>
+
+  <script>
+    const canvas   = document.getElementById('bg-canvas');
+    const ctx      = canvas.getContext('2d');
+    const sel      = document.getElementById('selection');
+    const toolbar  = document.getElementById('toolbar');
+    const sizeLabel = document.getElementById('size-label');
+    const btnCrop   = document.getElementById('btn-crop');
+    const btnCancel = document.getElementById('btn-cancel');
+
+    let img, startX, startY, isDragging = false;
+    let selRect = {};
+
+    // Load screenshot from storage
+    chrome.storage.local.get(['screenshotData'], ({ screenshotData }) => {
+      if (!screenshotData) { window.close(); return; }
+
+      img = new Image();
+      img.onload = () => {
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Scale image to fill viewport preserving aspect
+        const scale = Math.min(
+          window.innerWidth  / img.width,
+          window.innerHeight / img.height
+        );
+        const w = img.width  * scale;
+        const h = img.height * scale;
+        const x = (window.innerWidth  - w) / 2;
+        const y = (window.innerHeight - h) / 2;
+
+        ctx.drawImage(img, x, y, w, h);
+
+        // Store scale info for cropping
+        canvas._imgInfo = { x, y, w, h, scale, srcW: img.width, srcH: img.height };
+      };
+      img.src = screenshotData;
+    });
+
+    // ── Mouse interaction ──────────────────────────────────
+    document.addEventListener('mousedown', e => {
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      sel.style.display = 'block';
+      toolbar.classList.remove('visible');
+      updateSel(e.clientX, e.clientY);
+    });
+
+    document.addEventListener('mousemove', e => {
+      if (!isDragging) return;
+      updateSel(e.clientX, e.clientY);
+    });
+
+    document.addEventListener('mouseup', e => {
+      if (!isDragging) return;
+      isDragging = false;
+      const w = Math.abs(e.clientX - startX);
+      const h = Math.abs(e.clientY - startY);
+      if (w > 10 && h > 10) toolbar.classList.add('visible');
+    });
+
+    function updateSel(ex, ey) {
+      const x = Math.min(ex, startX);
+      const y = Math.min(ey, startY);
+      const w = Math.abs(ex - startX);
+      const h = Math.abs(ey - startY);
+      sel.style.left   = x + 'px';
+      sel.style.top    = y + 'px';
+      sel.style.width  = w + 'px';
+      sel.style.height = h + 'px';
+      selRect = { x, y, w, h };
+      sizeLabel.textContent = `${Math.round(w)} × ${Math.round(h)}`;
+    }
+
+    // ── Crop & send back ───────────────────────────────────
+    btnCrop.addEventListener('click', () => {
+      const info = canvas._imgInfo;
+      if (!info) return;
+
+      // Convert screen coords → image coords
+      const sx = (selRect.x - info.x) / info.scale;
+      const sy = (selRect.y - info.y) / info.scale;
+      const sw = selRect.w / info.scale;
+      const sh = selRect.h / info.scale;
+
+      const offscreen = document.createElement('canvas');
+      offscreen.width  = sw;
+      offscreen.height = sh;
+      const octx = offscreen.getContext('2d');
+      octx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+      const croppedDataUrl = offscreen.toDataURL('image/png');
+
+      chrome.storage.local.set({ croppedImage: croppedDataUrl }, () => {
+        chrome.storage.local.remove('screenshotData');
+        window.close();
+      });
+    });
+
+    btnCancel.addEventListener('click', () => {
+      chrome.storage.local.remove('screenshotData');
+      window.close();
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        chrome.storage.local.remove('screenshotData');
+        window.close();
+      }
+    });
+  </script>
+</body>
+</html>

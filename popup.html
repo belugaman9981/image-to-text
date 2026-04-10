@@ -2,238 +2,183 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Image to Text</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
+  <div class="container">
 
-  <!-- ── HOME SCREEN ── -->
-  <div id="home-screen" class="screen active">
+    <!-- Header -->
     <div class="header">
-      <div class="header-top">
-        <div class="app-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="22" height="22">
-            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M16,11H8V13H16V11M16,15H8V17H16V15Z"/>
-          </svg>
-        </div>
-        <div class="header-text">
-          <h1>Image to Text</h1>
-          <p class="subtitle">Choose how to import your image below</p>
-        </div>
-      </div>
-
-      <!-- Language selector -->
-      <div class="lang-row">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
-          <path d="M12.87,15.07L10.33,12.56L10.36,12.53C12.1,10.59 13.34,8.36 14.07,6H17V4H10V2H8V4H1V6H12.17C11.5,7.92 10.44,9.75 9,11.35C8.07,10.32 7.3,9.19 6.69,8H4.69C5.42,9.68 6.43,11.26 7.68,12.67L2.58,17.71L4,19.13L9,14.13L12.11,17.24L12.87,15.07M18.5,10H16.5L12,22H14L15.12,19H19.87L21,22H23L18.5,10M15.88,17L17.5,12.67L19.12,17H15.88Z"/>
+      <div class="header-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="3" width="18" height="18" rx="3" fill="currentColor" opacity="0.15"/>
+          <path d="M7 8h10M7 12h10M7 16h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M15 14l3 3-3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <label for="lang-select">Language</label>
-        <select id="lang-select">
+      </div>
+      <div class="header-text">
+        <h1>Image to Text</h1>
+        <p>Choose how to import your image below</p>
+      </div>
+    </div>
+
+    <!-- Language Selector -->
+    <div class="language-row">
+      <div class="language-icon">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M12 3c-2.5 3-4 5.5-4 9s1.5 6 4 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M12 3c2.5 3 4 5.5 4 9s-1.5 6-4 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M3 12h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="language-label">Language</span>
+      <div class="select-wrapper">
+        <select id="language-select">
           <option value="eng">English</option>
-          <option value="fre">French</option>
-          <option value="ger">German</option>
+          <option value="fra">French</option>
+          <option value="deu">German</option>
           <option value="spa">Spanish</option>
-          <option value="por">Portuguese</option>
           <option value="ita">Italian</option>
-          <option value="dut">Dutch</option>
-          <option value="pol">Polish</option>
+          <option value="por">Portuguese</option>
           <option value="rus">Russian</option>
+          <option value="zho">Chinese</option>
           <option value="jpn">Japanese</option>
           <option value="kor">Korean</option>
-          <option value="chs">Chinese (Simplified)</option>
-          <option value="cht">Chinese (Traditional)</option>
           <option value="ara">Arabic</option>
-          <option value="tur">Turkish</option>
-          <option value="swe">Swedish</option>
-          <option value="dan">Danish</option>
-          <option value="fin">Finnish</option>
         </select>
+        <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none">
+          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </div>
     </div>
 
-    <div class="options-list">
+    <!-- Divider -->
+    <div class="divider"></div>
 
-      <!-- Upload Image -->
-      <button class="option-row" id="upload-btn">
-        <div class="row-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-            <path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z"/>
+    <!-- Action Buttons -->
+    <div class="actions">
+
+      <button class="action-btn" id="btn-upload">
+        <div class="action-icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="17 8 12 3 7 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
           </svg>
         </div>
-        <div class="row-text">
-          <span class="card-title">Upload Image</span>
-          <span class="card-desc">Select a file from your device</span>
+        <div class="action-text">
+          <span class="action-title">Upload Image</span>
+          <span class="action-sub">Select a file from your device</span>
         </div>
-        <div class="row-arrow">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/></svg>
-        </div>
-      </button>
-
-      <!-- Take Screenshot -->
-      <button class="option-row" id="screenshot-btn">
-        <div class="row-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-            <path d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z"/>
-          </svg>
-        </div>
-        <div class="row-text">
-          <span class="card-title">Take Screenshot</span>
-          <span class="card-desc">Capture the current tab</span>
-        </div>
-        <div class="row-arrow">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/></svg>
-        </div>
-      </button>
-
-      <!-- Paste from Clipboard -->
-      <button class="option-row" id="clipboard-btn">
-        <div class="row-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-            <path d="M19,3H14.82C14.4,1.84 13.3,1 12,1C10.7,1 9.6,1.84 9.18,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M12,3A1,1 0 0,1 13,4A1,1 0 0,1 12,5A1,1 0 0,1 11,4A1,1 0 0,1 12,3M7,7H17V5H19V19H5V5H7V7Z"/>
-          </svg>
-        </div>
-        <div class="row-text">
-          <span class="card-title">Paste from Clipboard</span>
-          <span class="card-desc">Ctrl+V or ⌘+V</span>
-        </div>
-        <div class="row-arrow">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/></svg>
-        </div>
-      </button>
-
-      <!-- Drag & Drop -->
-      <button class="option-row" id="dragdrop-zone">
-        <div class="row-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-            <path d="M14,13V17H10V13H7L12,8L17,13M19.35,10.03C18.67,6.59 15.64,4 12,4C9.11,4 6.6,5.64 5.35,8.03C2.34,8.36 0,10.9 0,14A6,6 0 0,0 6,20H19A5,5 0 0,0 24,15C24,12.36 21.95,10.22 19.35,10.03Z"/>
-          </svg>
-        </div>
-        <div class="row-text">
-          <span class="card-title">Drag &amp; Drop</span>
-          <span class="card-desc">Drop an image onto this window</span>
-        </div>
-        <div class="row-arrow">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/></svg>
-        </div>
-      </button>
-
-    </div>
-
-    <input type="file" id="file-input" accept="image/*" hidden />
-  </div>
-
-  <!-- ── CROP SCREEN ── -->
-  <div id="crop-screen" class="screen">
-    <div class="result-header">
-      <button class="icon-btn" id="crop-back-btn" title="Back">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-          <path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
+        <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-      <h2>Select Region</h2>
-      <div style="width:32px"></div>
+      <input type="file" id="file-input" accept="image/*" style="display:none" />
+
+      <button class="action-btn" id="btn-screenshot">
+        <div class="action-icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="1.8"/>
+          </svg>
+        </div>
+        <div class="action-text">
+          <span class="action-title">Take Screenshot</span>
+          <span class="action-sub">Capture &amp; crop the current tab</span>
+        </div>
+        <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <button class="action-btn" id="btn-clipboard">
+        <div class="action-icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="9" y="2" width="6" height="4" rx="1" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M9 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2h-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="action-text">
+          <span class="action-title">Paste from Clipboard</span>
+          <span class="action-sub">Ctrl+V or ⌘+V</span>
+        </div>
+        <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <button class="action-btn" id="btn-dragdrop">
+        <div class="action-icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polyline points="16 16 12 12 8 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="12" y1="12" x2="12" y2="21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="action-text">
+          <span class="action-title">Drag &amp; Drop</span>
+          <span class="action-sub">Drop an image onto this window</span>
+        </div>
+        <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
     </div>
 
-    <div class="crop-body">
-      <p class="crop-hint">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
-          <path d="M18,4L20,8H17L15,4H13L15,8H12L10,4H8L10,8H7L5,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V4H18Z"/>
+    <!-- Drag Overlay -->
+    <div class="drag-overlay" id="drag-overlay">
+      <div class="drag-overlay-inner">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+          <polyline points="16 16 12 12 8 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="12" y1="12" x2="12" y2="21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        Drag to select a region — or use the full image
-      </p>
-      <div class="canvas-wrapper" id="canvas-wrapper">
-        <canvas id="crop-canvas"></canvas>
-        <div class="canvas-placeholder" id="canvas-placeholder">
-          <div class="mini-spinner"></div>
+        <p>Drop image here</p>
+      </div>
+    </div>
+
+    <!-- Result Panel -->
+    <div class="result-panel" id="result-panel">
+      <div class="result-header">
+        <span class="result-title">Extracted Text</span>
+        <div class="result-actions">
+          <button class="result-btn" id="btn-copy-text" title="Copy text">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/>
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            Copy
+          </button>
+          <button class="result-btn" id="btn-clear" title="Clear">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Clear
+          </button>
         </div>
       </div>
-      <div class="crop-actions">
-        <button class="btn-action btn-download" id="crop-full-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="15" height="15">
-            <path d="M21,3L3,3A2,2 0 0,0 1,5V19A2,2 0 0,0 3,21H21A2,2 0 0,0 23,19V5A2,2 0 0,0 21,3M21,19H3V5H21V19M16,13H13V8H11V13H8L12,17L16,13Z"/>
-          </svg>
-          Full Image
-        </button>
-        <button class="btn-action btn-copy" id="crop-extract-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="15" height="15">
-            <path d="M7,5H21V7H7V5M7,13V11H21V13H7M4,4.5A1.5,1.5 0 0,1 5.5,6A1.5,1.5 0 0,1 4,7.5A1.5,1.5 0 0,1 2.5,6A1.5,1.5 0 0,1 4,4.5M4,10.5A1.5,1.5 0 0,1 5.5,12A1.5,1.5 0 0,1 4,13.5A1.5,1.5 0 0,1 2.5,12A1.5,1.5 0 0,1 4,10.5M7,19V17H21V19H7M4,16.5A1.5,1.5 0 0,1 5.5,18A1.5,1.5 0 0,1 4,19.5A1.5,1.5 0 0,1 2.5,18A1.5,1.5 0 0,1 4,16.5Z"/>
-          </svg>
-          Extract Region
-        </button>
-      </div>
+      <div class="result-preview" id="result-preview"></div>
+      <textarea id="result-text" class="result-textarea" placeholder="Extracted text will appear here..." readonly></textarea>
     </div>
-  </div>
 
-  <!-- ── PROCESSING SCREEN ── -->
-  <div id="processing-screen" class="screen">
-    <div class="center-panel">
+    <!-- Loading Spinner -->
+    <div class="loading" id="loading">
       <div class="spinner"></div>
-      <p class="processing-text">Extracting text…</p>
-    </div>
-  </div>
-
-  <!-- ── RESULT SCREEN ── -->
-  <div id="result-screen" class="screen">
-    <div class="result-header">
-      <button class="icon-btn" id="back-btn" title="Back">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-          <path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
-        </svg>
-      </button>
-      <h2>Extracted Text</h2>
-      <div style="width:32px"></div>
+      <p>Processing image…</p>
     </div>
 
-    <div class="result-body">
-      <textarea id="result-text" spellcheck="false" placeholder="No text found in this image."></textarea>
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
 
-      <div class="result-actions">
-        <button class="btn-action btn-copy" id="copy-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-            <path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/>
-          </svg>
-          <span class="btn-label">Copy All</span>
-        </button>
-        <button class="btn-action btn-download" id="download-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-            <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z"/>
-          </svg>
-          <span class="btn-label">Download .txt</span>
-        </button>
-      </div>
-
-      <!-- AI Cleanup -->
-      <button class="btn-action btn-ai" id="ai-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="15" height="15">
-          <path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21A7,7 0 0,1 14,26H10A7,7 0 0,1 3,19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M7.5,13A2.5,2.5 0 0,0 5,15.5A2.5,2.5 0 0,0 7.5,18A2.5,2.5 0 0,0 10,15.5A2.5,2.5 0 0,0 7.5,13M16.5,13A2.5,2.5 0 0,0 14,15.5A2.5,2.5 0 0,0 16.5,18A2.5,2.5 0 0,0 19,15.5A2.5,2.5 0 0,0 16.5,13Z"/>
-        </svg>
-        <span class="btn-label" id="ai-btn-label">Clean up with AI</span>
-        <div class="btn-spinner" id="ai-spinner"></div>
-      </button>
-
-      <!-- API key input (hidden by default) -->
-      <div id="api-key-panel" class="api-key-panel" style="display:none">
-        <p class="api-key-hint">Enter your Anthropic API key. It's stored locally and never leaves your device.</p>
-        <div class="api-key-row">
-          <input type="password" id="api-key-input" placeholder="sk-ant-…" autocomplete="off" spellcheck="false" />
-          <button class="btn-action btn-copy btn-save-key" id="save-key-btn">Save</button>
-        </div>
-        <a class="api-key-link" href="https://console.anthropic.com/settings/keys" target="_blank">Get a free API key →</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── ERROR SCREEN ── -->
-  <div id="error-screen" class="screen">
-    <div class="center-panel">
-      <div class="error-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48">
-          <path d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"/>
-        </svg>
-      </div>
-      <p id="error-message" class="error-msg">An error occurred.</p>
-      <button class="btn-action btn-retry" id="retry-btn">Try Again</button>
-    </div>
   </div>
 
   <script src="popup.js"></script>

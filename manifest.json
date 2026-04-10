@@ -1,25 +1,41 @@
 {
   "manifest_version": 3,
-  "name": "Image to Text – Extract Text from Images",
-  "version": "1.1.0",
-  "description": "Upload images or screenshots and convert them to editable text in seconds.",
+  "name": "Image to Text",
+  "version": "1.0",
+  "description": "Extract text from images using OCR",
   "permissions": [
     "activeTab",
     "tabs",
-    "windows",
+    "scripting",
     "clipboardRead",
-    "clipboardWrite",
     "storage"
   ],
   "host_permissions": [
-    "https://api.ocr.space/*",
-    "https://api.anthropic.com/*"
+    "<all_urls>"
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Image to Text"
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
   },
   "background": {
     "service_worker": "background.js"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["content.css"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
