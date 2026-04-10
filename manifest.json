@@ -5,13 +5,8 @@
   "description": "Extract text from images using OCR",
   "permissions": [
     "activeTab",
-    "tabs",
     "scripting",
-    "clipboardRead",
     "storage"
-  ],
-  "host_permissions": [
-    "<all_urls>"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -23,19 +18,5 @@
   },
   "background": {
     "service_worker": "background.js"
-  },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "css": ["content.css"],
-      "run_at": "document_idle"
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": ["content.css"],
-      "matches": ["<all_urls>"]
-    }
-  ]
+  }
 }
