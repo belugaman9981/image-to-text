@@ -1,3 +1,4 @@
+
 // Background service worker
 // Opens the side panel when the toolbar icon is clicked
 
