@@ -3,17 +3,14 @@
   "name": "Image to Text",
   "version": "1.1.0",
   "description": "Extract text from images using OCR",
+
   "permissions": [
     "activeTab",
-    "tabs",
     "scripting",
-    "clipboardRead",
     "storage",
     "sidePanel"
   ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
+
   "action": {
     "default_title": "Open Image to Text",
     "default_icon": {
@@ -22,24 +19,12 @@
       "128": "icons/icon128.png"
     }
   },
+
   "side_panel": {
     "default_path": "popup.html"
   },
+
   "background": {
     "service_worker": "background.js"
-  },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "css": ["content.css"],
-      "run_at": "document_idle"
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": ["content.css", "crop.html"],
-      "matches": ["<all_urls>"]
-    }
-  ]
+  }
 }
