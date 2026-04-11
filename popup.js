@@ -1,9 +1,7 @@
-// ── Tesseract OCR via CDN (loaded dynamically) ────────────
-// We use Tesseract.js for client-side OCR.
-
+// ── Helpers ───────────────────────────────────────────
 const $ = id => document.getElementById(id);
 
-const btnUpload    = $('btn-upload');
+const btnUpload     = $('btn-upload');
 const btnScreenshot = $('btn-screenshot');
 const btnClipboard  = $('btn-clipboard');
 const btnDragDrop   = $('btn-dragdrop');
@@ -17,18 +15,18 @@ const btnClear      = $('btn-clear');
 const dragOverlay   = $('drag-overlay');
 const toast         = $('toast');
 
-// ── Toast helper ─────────────────────────────────────────
-function showToast(msg, duration = 2000) {
+// ── Toast ─────────────────────────────────────────────
+function showToast(msg, duration = 2200) {
   toast.textContent = msg;
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), duration);
 }
 
-// ── Show result ──────────────────────────────────────────
+// ── Show result ───────────────────────────────────────
 function showResult(text, imageUrl = null) {
   resultText.value = text || '(No text detected)';
   if (imageUrl) {
-    resultPreview.innerHTML = `<img src="${imageUrl}" alt="processed" />`;
+    resultPreview.innerHTML = `<img src="${imageUrl}" alt="source" />`;
     resultPreview.classList.add('has-image');
   } else {
     resultPreview.classList.remove('has-image');
@@ -37,48 +35,51 @@ function showResult(text, imageUrl = null) {
   resultPanel.classList.add('visible');
 }
 
+// ── Loading state ─────────────────────────────────────
 function setLoading(on) {
   loading.classList.toggle('visible', on);
   [btnUpload, btnScreenshot, btnClipboard, btnDragDrop].forEach(b => {
     b.disabled = on;
-    b.style.opacity = on ? '.5' : '1';
+    b.style.opacity = on ? '.45' : '1';
+    b.style.pointerEvents = on ? 'none' : '';
   });
 }
 
-// ── OCR via Tesseract.js (loaded lazily) ─────────────────
-let tesseractReady = false;
-
-function loadTesseract() {
-  return new Promise((resolve, reject) => {
-    if (window.Tesseract) { resolve(); return; }
+// ── Lazy-load Tesseract ───────────────────────────────
+async function loadTesseract() {
+  if (window.Tesseract) return;
+  await new Promise((resolve, reject) => {
     const s = document.createElement('script');
     s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-    s.onload = () => { tesseractReady = true; resolve(); };
+    s.onload = resolve;
     s.onerror = reject;
     document.head.appendChild(s);
   });
 }
 
+// ── Run OCR ───────────────────────────────────────────
 async function runOCR(imageData) {
   const lang = $('language-select').value;
   setLoading(true);
+  resultPanel.classList.remove('visible');
   try {
     await loadTesseract();
-    const worker = await Tesseract.createWorker(lang, 1, {
-      logger: () => {}
-    });
+    const worker = await Tesseract.createWorker(lang, 1, { logger: () => {} });
     const { data: { text } } = await worker.recognize(imageData);
     await worker.terminate();
-    showResult(text.trim(), typeof imageData === 'string' ? imageData : null);
+    showResult(
+      text.trim(),
+      typeof imageData === 'string' ? imageData : null
+    );
   } catch (err) {
-    showToast('OCR failed: ' + err.message, 3000);
+    showToast('OCR failed: ' + err.message, 3500);
     console.error(err);
   } finally {
     setLoading(false);
   }
 }
 
-// ── 1. Upload Image ──────────────────────────────────────
+// ── 1. Upload Image ───────────────────────────────────
 btnUpload.addEventListener('click', () => fileInput.click());
 
 fileInput.addEventListener('change', async () => {
@@ -89,37 +90,74 @@ fileInput.addEventListener('change', async () => {
   fileInput.value = '';
 });
 
-// ── 2. Screenshot + Crop ─────────────────────────────────
+// ── 2. Screenshot + Crop ──────────────────────────────
 btnScreenshot.addEventListener('click', async () => {
-  // Ask background to capture the tab, then inject crop UI
   try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    // Get the active tab in the current window (the page the user is viewing)
+    const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!activeTab) { showToast('No active tab found.', 3000); return; }
 
-    // Capture screenshot
-    const dataUrl = await chrome.tabs.captureVisibleTab(null, { format: 'png' });
+    // Ask the background worker to capture — it has the right context
+    const response = await chrome.runtime.sendMessage({
+      action: 'captureTab',
+      windowId: activeTab.windowId
+    });
 
-    // Store screenshot and open crop page
-    await chrome.storage.local.set({ screenshotData: dataUrl });
+    if (response?.error) throw new Error(response.error);
 
-    // Open crop page in a new tab
+    // Stash the screenshot and open the crop UI
+    await chrome.storage.local.set({
+      screenshotData: response.dataUrl,
+      originTabId: activeTab.id
+    });
+
     const cropUrl = chrome.runtime.getURL('crop.html');
     await chrome.tabs.create({ url: cropUrl });
-    window.close();
   } catch (err) {
-    showToast('Screenshot failed. Try on a web page.', 3000);
+    showToast('Screenshot failed: ' + err.message, 3500);
     console.error(err);
   }
 });
 
-// Check if we have cropped result (from crop page)
-chrome.storage.local.get(['croppedImage'], async (result) => {
-  if (result.croppedImage) {
-    await chrome.storage.local.remove('croppedImage');
-    await runOCR(result.croppedImage);
+// Check for cropped result (returned from crop page)
+chrome.storage.local.get(['croppedImage'], async ({ croppedImage }) => {
+  if (croppedImage) {
+    await chrome.storage.local.remove(['croppedImage', 'originTabId']);
+    await runOCR(croppedImage);
   }
 });
 
-// ── 3. Paste from Clipboard ──────────────────────────────
+// ── 3. Paste from Clipboard ───────────────────────────
+async function handlePaste(e) {
+  const items = e?.clipboardData?.items
+    || (await navigator.clipboard.read().catch(() => null));
+
+  if (!items) { showToast('Clipboard access denied', 2500); return; }
+
+  // DataTransfer items (from paste event)
+  if (e?.clipboardData) {
+    for (const item of e.clipboardData.items) {
+      if (item.type.startsWith('image/')) {
+        const blob = item.getAsFile();
+        await runOCR(URL.createObjectURL(blob));
+        return;
+      }
+    }
+  } else {
+    // Clipboard API items
+    for (const item of items) {
+      for (const type of item.types) {
+        if (type.startsWith('image/')) {
+          const blob = await item.getType(type);
+          await runOCR(URL.createObjectURL(blob));
+          return;
+        }
+      }
+    }
+  }
+  showToast('No image in clipboard', 2500);
+}
+
 btnClipboard.addEventListener('click', async () => {
   try {
     const items = await navigator.clipboard.read();
@@ -128,74 +166,56 @@ btnClipboard.addEventListener('click', async () => {
       for (const type of item.types) {
         if (type.startsWith('image/')) {
           const blob = await item.getType(type);
-          const url = URL.createObjectURL(blob);
-          await runOCR(url);
+          await runOCR(URL.createObjectURL(blob));
           found = true;
           break;
         }
       }
       if (found) break;
     }
-    if (!found) showToast('No image in clipboard', 2500);
-  } catch (err) {
-    // Fallback: prompt user to paste
-    showToast('Paste an image below (Ctrl+V / ⌘+V)', 3000);
-    document.addEventListener('paste', handlePaste, { once: true });
+    if (!found) showToast('No image in clipboard — try Ctrl+V / ⌘+V', 3000);
+  } catch {
+    showToast('Paste an image with Ctrl+V / ⌘+V', 2800);
   }
 });
-
-async function handlePaste(e) {
-  const items = e.clipboardData?.items;
-  if (!items) return;
-  for (const item of items) {
-    if (item.type.startsWith('image/')) {
-      const blob = item.getAsFile();
-      const url = URL.createObjectURL(blob);
-      await runOCR(url);
-      return;
-    }
-  }
-  showToast('No image found in clipboard', 2500);
-}
 
 // Global paste listener
 document.addEventListener('paste', handlePaste);
 
-// ── 4. Drag & Drop ───────────────────────────────────────
-const container = document.querySelector('.container');
+// ── 4. Drag & Drop ────────────────────────────────────
+const panel = document.querySelector('.panel');
 
-container.addEventListener('dragenter', (e) => {
+panel.addEventListener('dragenter', e => {
   e.preventDefault();
   if ([...e.dataTransfer.items].some(i => i.type.startsWith('image/'))) {
     dragOverlay.classList.add('active');
   }
 });
 
-container.addEventListener('dragover', (e) => e.preventDefault());
+panel.addEventListener('dragover', e => e.preventDefault());
 
-container.addEventListener('dragleave', (e) => {
-  if (!container.contains(e.relatedTarget)) {
+panel.addEventListener('dragleave', e => {
+  if (!panel.contains(e.relatedTarget)) {
     dragOverlay.classList.remove('active');
   }
 });
 
-container.addEventListener('drop', async (e) => {
+panel.addEventListener('drop', async e => {
   e.preventDefault();
   dragOverlay.classList.remove('active');
   const file = [...e.dataTransfer.files].find(f => f.type.startsWith('image/'));
   if (file) {
-    const url = URL.createObjectURL(file);
-    await runOCR(url);
+    await runOCR(URL.createObjectURL(file));
   } else {
     showToast('Please drop an image file', 2500);
   }
 });
 
 btnDragDrop.addEventListener('click', () => {
-  showToast('Drag an image onto this popup window', 2500);
+  showToast('Drag an image file onto this panel', 2500);
 });
 
-// ── Copy & Clear ─────────────────────────────────────────
+// ── Copy & Clear ──────────────────────────────────────
 btnCopyText.addEventListener('click', async () => {
   const text = resultText.value;
   if (!text) return;

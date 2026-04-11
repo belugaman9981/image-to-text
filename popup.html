@@ -6,39 +6,36 @@
   <title>Image to Text</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
-  <div class="container">
+  <div class="panel">
 
-    <!-- Header -->
-    <div class="header">
+    <!-- ── Header ───────────────────────────────────── -->
+    <div class="panel-header">
       <div class="header-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="3" y="3" width="18" height="18" rx="3" fill="currentColor" opacity="0.15"/>
-          <path d="M7 8h10M7 12h10M7 16h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          <path d="M15 14l3 3-3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="3" width="18" height="18" rx="3" fill="currentColor" opacity="0.18"/>
+          <path d="M7 8h10M7 12h10M7 16h6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
         </svg>
       </div>
-      <div class="header-text">
-        <h1>Image to Text</h1>
-        <p>Choose how to import your image below</p>
+      <div>
+        <h1 class="panel-title">Image to Text</h1>
+        <p class="panel-sub">Upload images and convert them to<br>editable text in seconds.</p>
       </div>
     </div>
 
-    <!-- Language Selector -->
-    <div class="language-row">
-      <div class="language-icon">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
-          <path d="M12 3c-2.5 3-4 5.5-4 9s1.5 6 4 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          <path d="M12 3c2.5 3 4 5.5 4 9s-1.5 6-4 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          <path d="M3 12h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <span class="language-label">Language</span>
-      <div class="select-wrapper">
+    <!-- ── Language Selector ─────────────────────────── -->
+    <div class="lang-bar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="lang-icon">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M12 3c-2.5 3-4 5.5-4 9s1.5 6 4 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M12 3c2.5 3 4 5.5 4 9s-1.5 6-4 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M3 12h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <span class="lang-label">Language</span>
+      <div class="select-wrap">
         <select id="language-select">
           <option value="eng">English</option>
           <option value="fra">French</option>
@@ -52,92 +49,69 @@
           <option value="kor">Korean</option>
           <option value="ara">Arabic</option>
         </select>
-        <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none">
-          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none">
+          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
     </div>
 
-    <!-- Divider -->
-    <div class="divider"></div>
+    <!-- ── 2×2 Grid Buttons ───────────────────────────── -->
+    <div class="grid">
 
-    <!-- Action Buttons -->
-    <div class="actions">
-
-      <button class="action-btn" id="btn-upload">
-        <div class="action-icon-wrap">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <button class="grid-btn" id="btn-upload">
+        <div class="grid-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
             <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             <polyline points="17 8 12 3 7 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
           </svg>
         </div>
-        <div class="action-text">
-          <span class="action-title">Upload Image</span>
-          <span class="action-sub">Select a file from your device</span>
-        </div>
-        <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+        <span class="grid-title">Upload Image</span>
+        <span class="grid-sub">Select from your device</span>
       </button>
       <input type="file" id="file-input" accept="image/*" style="display:none" />
 
-      <button class="action-btn" id="btn-screenshot">
-        <div class="action-icon-wrap">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <button class="grid-btn" id="btn-screenshot">
+        <div class="grid-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
             <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="1.8"/>
           </svg>
         </div>
-        <div class="action-text">
-          <span class="action-title">Take Screenshot</span>
-          <span class="action-sub">Capture &amp; crop the current tab</span>
-        </div>
-        <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+        <span class="grid-title">Take Screenshot</span>
+        <span class="grid-sub">Capture current tab</span>
       </button>
 
-      <button class="action-btn" id="btn-clipboard">
-        <div class="action-icon-wrap">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <button class="grid-btn" id="btn-clipboard">
+        <div class="grid-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
             <rect x="9" y="2" width="6" height="4" rx="1" stroke="currentColor" stroke-width="1.8"/>
             <path d="M9 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2h-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
             <path d="M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
           </svg>
         </div>
-        <div class="action-text">
-          <span class="action-title">Paste from Clipboard</span>
-          <span class="action-sub">Ctrl+V or ⌘+V</span>
-        </div>
-        <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+        <span class="grid-title">Paste from Clipboard</span>
+        <span class="grid-sub">Press Ctrl+V or ⌘+V</span>
       </button>
 
-      <button class="action-btn" id="btn-dragdrop">
-        <div class="action-icon-wrap">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <button class="grid-btn" id="btn-dragdrop">
+        <div class="grid-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
             <polyline points="16 16 12 12 8 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             <line x1="12" y1="12" x2="12" y2="21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
             <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <div class="action-text">
-          <span class="action-title">Drag &amp; Drop</span>
-          <span class="action-sub">Drop an image onto this window</span>
-        </div>
-        <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+        <span class="grid-title">Drag &amp; Drop</span>
+        <span class="grid-sub">Drag files into this window</span>
       </button>
 
     </div>
 
-    <!-- Drag Overlay -->
+    <!-- ── Drag Overlay ──────────────────────────────── -->
     <div class="drag-overlay" id="drag-overlay">
-      <div class="drag-overlay-inner">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+      <div class="drag-inner">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
           <polyline points="16 16 12 12 8 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
           <line x1="12" y1="12" x2="12" y2="21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
           <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -146,40 +120,49 @@
       </div>
     </div>
 
-    <!-- Result Panel -->
+    <!-- ── Loading ───────────────────────────────────── -->
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Processing image…</p>
+    </div>
+
+    <!-- ── Result Panel ──────────────────────────────── -->
     <div class="result-panel" id="result-panel">
       <div class="result-header">
-        <span class="result-title">Extracted Text</span>
-        <div class="result-actions">
-          <button class="result-btn" id="btn-copy-text" title="Copy text">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <span class="result-label">Extracted Text</span>
+        <div class="result-btns">
+          <button class="rbtn" id="btn-copy-text">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
               <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/>
               <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="2"/>
             </svg>
             Copy
           </button>
-          <button class="result-btn" id="btn-clear" title="Clear">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <button class="rbtn" id="btn-clear">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
               <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
             Clear
           </button>
         </div>
       </div>
-      <div class="result-preview" id="result-preview"></div>
-      <textarea id="result-text" class="result-textarea" placeholder="Extracted text will appear here..." readonly></textarea>
+      <div class="result-img-wrap" id="result-preview"></div>
+      <textarea id="result-text" class="result-ta" placeholder="Extracted text will appear here…" readonly></textarea>
     </div>
 
-    <!-- Loading Spinner -->
-    <div class="loading" id="loading">
-      <div class="spinner"></div>
-      <p>Processing image…</p>
+    <!-- ── Footer ────────────────────────────────────── -->
+    <div class="panel-footer">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      Contact Us
     </div>
-
-    <!-- Toast -->
-    <div class="toast" id="toast"></div>
 
   </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
 
   <script src="popup.js"></script>
 </body>

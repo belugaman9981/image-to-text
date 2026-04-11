@@ -201,36 +201,38 @@
       const info = canvas._imgInfo;
       if (!info) return;
 
-      // Convert screen coords → image coords
       const sx = (selRect.x - info.x) / info.scale;
       const sy = (selRect.y - info.y) / info.scale;
       const sw = selRect.w / info.scale;
       const sh = selRect.h / info.scale;
 
       const offscreen = document.createElement('canvas');
-      offscreen.width  = sw;
-      offscreen.height = sh;
+      offscreen.width  = Math.round(sw);
+      offscreen.height = Math.round(sh);
       const octx = offscreen.getContext('2d');
       octx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
       const croppedDataUrl = offscreen.toDataURL('image/png');
 
       chrome.storage.local.set({ croppedImage: croppedDataUrl }, () => {
-        chrome.storage.local.remove('screenshotData');
-        window.close();
+        chrome.storage.local.remove(['screenshotData']);
+        // Go back to the origin tab, then close this crop tab
+        chrome.storage.local.get(['originTabId'], ({ originTabId }) => {
+          if (originTabId) chrome.tabs.update(originTabId, { active: true });
+          window.close();
+        });
       });
     });
 
-    btnCancel.addEventListener('click', () => {
-      chrome.storage.local.remove('screenshotData');
-      window.close();
-    });
-
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') {
-        chrome.storage.local.remove('screenshotData');
+    function cancelCrop() {
+      chrome.storage.local.remove(['screenshotData', 'originTabId']);
+      chrome.storage.local.get(['originTabId'], ({ originTabId }) => {
+        if (originTabId) chrome.tabs.update(originTabId, { active: true });
         window.close();
-      }
-    });
+      });
+    }
+
+    btnCancel.addEventListener('click', cancelCrop);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') cancelCrop(); });
   </script>
 </body>
 </html>
