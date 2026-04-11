@@ -1,3 +1,4 @@
+
 // ── Helpers ───────────────────────────────────────────
 const $ = id => document.getElementById(id);
 
@@ -208,3 +209,4 @@ document.addEventListener('click', async e => {
     resultPanel.classList.remove('visible');
   }
 });
+
