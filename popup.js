@@ -10,8 +10,6 @@ const loading       = $('loading');
 const resultPanel   = $('result-panel');
 const resultText    = $('result-text');
 const resultPreview = $('result-preview');
-const btnCopyText   = $('btn-copy-text');
-const btnClear      = $('btn-clear');
 const dragOverlay   = $('drag-overlay');
 const toast         = $('toast');
 
@@ -93,11 +91,9 @@ fileInput.addEventListener('change', async () => {
 // ── 2. Screenshot + Crop ──────────────────────────────
 btnScreenshot.addEventListener('click', async () => {
   try {
-    // Get the active tab in the current window (the page the user is viewing)
     const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!activeTab) { showToast('No active tab found.', 3000); return; }
 
-    // Ask the background worker to capture — it has the right context
     const response = await chrome.runtime.sendMessage({
       action: 'captureTab',
       windowId: activeTab.windowId
@@ -105,7 +101,6 @@ btnScreenshot.addEventListener('click', async () => {
 
     if (response?.error) throw new Error(response.error);
 
-    // Stash the screenshot and open the crop UI
     await chrome.storage.local.set({
       screenshotData: response.dataUrl,
       originTabId: activeTab.id
@@ -129,29 +124,12 @@ chrome.storage.local.get(['croppedImage'], async ({ croppedImage }) => {
 
 // ── 3. Paste from Clipboard ───────────────────────────
 async function handlePaste(e) {
-  const items = e?.clipboardData?.items
-    || (await navigator.clipboard.read().catch(() => null));
-
-  if (!items) { showToast('Clipboard access denied', 2500); return; }
-
-  // DataTransfer items (from paste event)
   if (e?.clipboardData) {
     for (const item of e.clipboardData.items) {
       if (item.type.startsWith('image/')) {
         const blob = item.getAsFile();
         await runOCR(URL.createObjectURL(blob));
         return;
-      }
-    }
-  } else {
-    // Clipboard API items
-    for (const item of items) {
-      for (const type of item.types) {
-        if (type.startsWith('image/')) {
-          const blob = await item.getType(type);
-          await runOCR(URL.createObjectURL(blob));
-          return;
-        }
       }
     }
   }
@@ -179,7 +157,6 @@ btnClipboard.addEventListener('click', async () => {
   }
 });
 
-// Global paste listener
 document.addEventListener('paste', handlePaste);
 
 // ── 4. Drag & Drop ────────────────────────────────────
@@ -215,17 +192,19 @@ btnDragDrop.addEventListener('click', () => {
   showToast('Drag an image file onto this panel', 2500);
 });
 
-// ── Copy & Clear ──────────────────────────────────────
-btnCopyText.addEventListener('click', async () => {
-  const text = resultText.value;
-  if (!text) return;
-  await navigator.clipboard.writeText(text);
-  showToast('Copied to clipboard!');
-});
+// ── Copy & Clear — use event delegation so they always fire ──
+document.addEventListener('click', async e => {
+  if (e.target.closest('#btn-copy-text')) {
+    const text = resultText.value;
+    if (!text) return;
+    await navigator.clipboard.writeText(text);
+    showToast('Copied to clipboard!');
+  }
 
-btnClear.addEventListener('click', () => {
-  resultText.value = '';
-  resultPreview.innerHTML = '';
-  resultPreview.classList.remove('has-image');
-  resultPanel.classList.remove('visible');
+  if (e.target.closest('#btn-clear')) {
+    resultText.value = '';
+    resultPreview.innerHTML = '';
+    resultPreview.classList.remove('has-image');
+    resultPanel.classList.remove('visible');
+  }
 });
