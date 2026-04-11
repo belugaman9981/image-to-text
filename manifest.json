@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Image to Text",
-  "version": "1.0",
+  "version": "1.1.0",
   "description": "Extract text from images using OCR",
   "permissions": [
     "activeTab",
